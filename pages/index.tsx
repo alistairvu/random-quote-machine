@@ -30,10 +30,10 @@ export default function Home({ content, author }: HomeProps) {
       <Head>
         <title>Quote Machine</title>
         <link rel="icon" href="/favicon.ico" />
-        <script
+        {/* <script
           defer
           src="https://cdn.freecodecamp.org/testable-projects-fcc/v1/bundle.js"
-        />
+        /> */}
       </Head>
 
       <main>
