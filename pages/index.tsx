@@ -1,65 +1,80 @@
 import Head from "next/head"
-import styles from "../styles/Home.module.css"
+import { GetServerSideProps } from "next"
+import useQuote from "../zustand/useQuote"
+import { useEffect } from "react"
+import axios from "axios"
+import { Center, Button, VStack, Link, Heading } from "@chakra-ui/react"
 
-export default function Home() {
+interface HomeProps {
+  content: string
+  author: string
+}
+
+export default function Home({ content, author }: HomeProps) {
+  const [loading, error, quote] = useQuote((state) => [
+    state.loading,
+    state.error,
+    state.quote,
+  ])
+  const [setQuote, fetchNewQuote] = useQuote((state) => [
+    state.setQuote,
+    state.fetchNewQuote,
+  ])
+
+  useEffect(() => {
+    setQuote(content, author)
+  }, [setQuote])
+
   return (
-    <div className={styles.container}>
+    <div>
       <Head>
-        <title>Create Next App</title>
+        <title>Quote Machine</title>
         <link rel="icon" href="/favicon.ico" />
+        <script
+          defer
+          src="https://cdn.freecodecamp.org/testable-projects-fcc/v1/bundle.js"
+        />
       </Head>
 
-      <main className={styles.main}>
-        <h1 className={styles.title}>
-          Welcome to <a href="https://nextjs.org">Next.js!</a>
-        </h1>
+      <main>
+        <Center width="100vw" height="100vh" p={10}>
+          {loading && <Heading size="md">Loading...</Heading>}
 
-        <p className={styles.description}>
-          Get started by editing{" "}
-          <code className={styles.code}>pages/index.tsx</code>
-        </p>
-
-        <div className={styles.grid}>
-          <a href="https://nextjs.org/docs" className={styles.card}>
-            <h3>Documentation &rarr;</h3>
-            <p>Find in-depth information about Next.js features and API.</p>
-          </a>
-
-          <a href="https://nextjs.org/learn" className={styles.card}>
-            <h3>Learn &rarr;</h3>
-            <p>Learn about Next.js in an interactive course with quizzes!</p>
-          </a>
-
-          <a
-            href="https://github.com/vercel/next.js/tree/master/examples"
-            className={styles.card}
-          >
-            <h3>Examples &rarr;</h3>
-            <p>Discover and deploy boilerplate example Next.js projects.</p>
-          </a>
-
-          <a
-            href="https://vercel.com/new?utm_source=create-next-app&utm_medium=default-template&utm_campaign=create-next-app"
-            className={styles.card}
-          >
-            <h3>Deploy &rarr;</h3>
-            <p>
-              Instantly deploy your Next.js site to a public URL with Vercel.
-            </p>
-          </a>
-        </div>
+          {!loading && !error && (
+            <VStack w={{ base: "60vw", sm: "80vw" }} id="quote-box">
+              <Heading id="text" textAlign="center">
+                {quote.content}
+              </Heading>
+              <Heading id="author" size="md">
+                {quote.author}
+              </Heading>
+              <Button
+                colorScheme="blue"
+                variant="solid"
+                onClick={fetchNewQuote}
+                id="new-quote"
+              >
+                Get new quote
+              </Button>
+              <Link
+                isExternal
+                href={`https://twitter.com/intent/tweet?text=${quote.content}`}
+                id="tweet-quote"
+              >
+                Tweet
+              </Link>
+            </VStack>
+          )}
+        </Center>
       </main>
-
-      <footer className={styles.footer}>
-        <a
-          href="https://vercel.com?utm_source=create-next-app&utm_medium=default-template&utm_campaign=create-next-app"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          Powered by{" "}
-          <img src="/vercel.svg" alt="Vercel Logo" className={styles.logo} />
-        </a>
-      </footer>
     </div>
   )
+}
+
+export const getServerSideProps: GetServerSideProps = async () => {
+  const { data } = await axios.get(
+    "https://api.quotable.io/random?tags=wisdom|ispirational"
+  )
+  const { content, author } = data
+  return { props: { content, author } }
 }
